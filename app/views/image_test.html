@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload & Fetch Demo</title>
+    <style>
+        body { font-family: Arial; padding: 25px; }
+        .section {
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        img { max-width: 350px; margin-top: 15px; border: 1px solid #aaa; }
+    </style>
+</head>
+<body>
+
+<h1>Image Upload & Fetch Demo</h1>
+
+<!-- --------------------- Upload Section --------------------- -->
+<div class="section">
+    <h2>Upload an Image</h2>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadImage()">Upload</button>
+
+    <p id="uploadStatus"></p>
+</div>
+
+<!-- --------------------- Fetch Section --------------------- -->
+<div class="section">
+    <h2>Fetch Image by ID</h2>
+    <input type="number" id="imageId" placeholder="Enter image ID">
+    <button onclick="loadImage()">Fetch</button>
+
+    <div id="imageContainer"></div>
+</div>
+
+<script>
+    /**
+     * Upload image → POST /image
+     */
+    async function uploadImage() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) {
+            alert("Choose an image");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const statusEl = document.getElementById("uploadStatus");
+        statusEl.innerText = "Uploading...";
+
+        try {
+            const res = await fetch("/image", {
+                method: "POST",
+                body: formData,
+                headers: { "Csrf-Token": "nocheck" }  // bypass CSRF in dev mode
+            });
+
+            const ct = res.headers.get("content-type") || "";
+
+            if (ct.includes("application/json")) {
+                const json = await res.json();
+                statusEl.innerHTML = `Uploaded! ID: ${json.image_id}
+                <a href="/image/${json.image_id}" target="_blank">view</a>`;
+                return;
+            }
+
+            // If backend returned HTML or error page
+            const text = await res.text();
+            statusEl.innerText = "Server returned non-JSON response. Preview below:";
+            const preview = document.createElement("pre");
+            preview.textContent = text.slice(0, 2000);
+            preview.style.background = "#eee";
+            preview.style.padding = "10px";
+            statusEl.appendChild(preview);
+
+        } catch (err) {
+            statusEl.innerText = "Upload failed: " + err;
+        }
+    }
+
+    /**
+     * Fetch image → GET /image/:id
+     */
+    function loadImage() {
+        const id = document.getElementById("imageId").value;
+        if (!id) {
+            alert("Enter a valid image ID");
+            return;
+        }
+
+        const imgUrl = "/image/" + id;
+
+        const img = document.createElement("img");
+        img.src = imgUrl;
+
+        const container = document.getElementById("imageContainer");
+        container.innerHTML = ""; // clear old
+        container.appendChild(img);
+    }
+</script>
+
+</body>
+</html>

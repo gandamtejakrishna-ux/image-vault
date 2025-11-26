@@ -1,0 +1,38 @@
+@(message: String = "")
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Login</title>
+        <style>
+                body { font-family: Arial; padding: 40px; }
+                .login-box {
+                    width: 300px;
+                    margin: auto;
+                    padding: 20px;
+                    border: 1px solid #999;
+                    border-radius: 10px;
+                }
+                input { width: 100%; padding: 8px; margin: 8px 0; }
+        </style>
+    </head>
+    <body>
+
+        <h2>Login</h2>
+
+        <div class="login-box">
+            <form action="/login" method="POST">
+                <label>Username</label>
+                <input type="text" name="username" required>
+
+                <label>Password</label>
+                <input type="password" name="password" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <p style="color:red;">@message</p>
+        </div>
+
+    </body>
+</html>
